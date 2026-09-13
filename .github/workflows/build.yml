@@ -1,0 +1,24 @@
+name: Build Duolet
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: xcodebuild -version
+      - name: Test core behavior
+        run: bash scripts/test.sh
+      - name: Build universal app and DMG
+        run: bash scripts/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Duolet-macOS
+          path: |
+            dist/*.dmg
+            dist/SHA256SUMS
