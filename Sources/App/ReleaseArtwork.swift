@@ -41,6 +41,39 @@ enum ReleaseArtwork {
         .padding(56).foregroundStyle(.white)
         .background(LinearGradient(colors: [Color(red: 0.07, green: 0.20, blue: 0.23), Color(red: 0.03, green: 0.07, blue: 0.12)], startPoint: .topLeading, endPoint: .bottomTrailing))
         try save(sheet, to: destination.appendingPathComponent("indicator-states.png"), scale: 2)
+        let percentageStates: [(String, DeviceStatus)] = [
+            ("50", .init(power: .init(percentage: 50, isPluggedIn: true, hasBattery: true), connection: .wifi)),
+            ("16", .init(power: .init(percentage: 16, isPluggedIn: true, hasBattery: true), connection: .wifi)),
+            ("100", .preview),
+            ("0", .init(power: .init(percentage: 0, isPluggedIn: false, hasBattery: true), connection: .offline)),
+            ("Ethernet", .init(power: .init(percentage: 82, isPluggedIn: true, hasBattery: true), connection: .ethernet)),
+            ("Unknown", .init(power: .init(percentage: nil, isPluggedIn: false, hasBattery: true), connection: .unknown)),
+            ("No battery", .init(power: .init(percentage: nil, isPluggedIn: true, hasBattery: false), connection: .ethernet))
+        ]
+        let percentageSheet = VStack(alignment: .leading, spacing: 20) {
+            ForEach([160, 220, 300], id: \.self) { size in
+                Text("\(size) pt widget · battery percentage").font(.headline)
+                HStack(spacing: 12) {
+                    ForEach(percentageStates.indices, id: \.self) { index in
+                        VStack {
+                            IndicatorView(status: percentageStates[index].1, showsPercentage: true)
+                                .padding(16).frame(width: CGFloat(size), height: CGFloat(size))
+                            Text(percentageStates[index].0).font(.caption)
+                        }
+                    }
+                }
+            }
+            HStack(spacing: 12) {
+                IndicatorView(status: percentageStates[0].1)
+                    .padding(16).frame(width: 220, height: 220)
+                IndicatorView(status: percentageStates[1].1, ink: .white, inactiveOpacity: 0.28,
+                              showsPercentage: true, lowBatteryInk: nil)
+                    .padding(16).frame(width: 220, height: 220).background(Color.black)
+                Text("Percentage off · monochrome appearance").font(.headline)
+            }
+        }
+        .padding(24).foregroundStyle(.black).background(IndicatorView.background)
+        try save(percentageSheet, to: destination.appendingPathComponent("percentage-states.png"), scale: 2)
     }
 
     private static func save<V: View>(_ view: V, to url: URL, scale: Double = 1) throws {

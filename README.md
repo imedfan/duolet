@@ -12,7 +12,8 @@ in the menu bar, on your desktop, or in a system widget.
 ## A little less checking
 
 - **Live menu-bar indicator:** battery arc, active network type, and power-source dots.
-- **Optional percentage:** an exact battery reading next to the menu-bar icon.
+- **Optional percentages:** independent checkmarks for the menu bar and desktop widget.
+  The widget places the reading above the connection icon in a gap in the battery arc.
 - **Movable desktop widget:** three sizes, glass or solid background, and an option to stay on top.
 - **WidgetKit included:** add Duolet from the macOS widget gallery when the extension is registered.
 - **Quick settings:** Option + right-click opens shortcuts to network, battery, and battery health.
@@ -52,6 +53,9 @@ For the system widget, right-click the desktop → **Edit Widgets** → search f
 **Duolet**. The extension is bundled with the app, but some macOS configurations
 require an Apple Development or Developer ID signature before it appears in the
 gallery. The movable desktop widget works independently of WidgetKit registration.
+Enable **Battery Percentage in Widget** in Duolet's menu to keep the reading visible
+on the movable widget. For a system widget, right-click it → **Edit Widget** →
+**Battery Percentage**. Each system widget keeps its own choice.
 If you previously ran BatDuo or duoPa, quit those apps and disable their old login
 items to avoid duplicate indicators. Duolet starts with its own preferences.
 

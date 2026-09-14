@@ -90,6 +90,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 togglePercentage()
                 let percentageChanged = item.button?.title != originalTitle
                 togglePercentage()
+                let originalWidgetPercentage = defaults.object(forKey: "showWidgetPercentage")
+                let originalWidgetPercentageValue = defaults.bool(forKey: "showWidgetPercentage")
+                var widgetPercentagePassed = true
+                for _ in 0..<2 {
+                    toggleWidgetPercentage()
+                    let expected: NSControl.StateValue = defaults.bool(forKey: "showWidgetPercentage") ? .on : .off
+                    let row = makeMenu(settings: false).items.first { $0.action == #selector(toggleWidgetPercentage) }
+                    widgetPercentagePassed = widgetPercentagePassed && row?.state == expected
+                        && item.button?.title == originalTitle
+                }
+                widgetPercentagePassed = widgetPercentagePassed
+                    && defaults.bool(forKey: "showWidgetPercentage") == originalWidgetPercentageValue
+                defaults.set(originalWidgetPercentage, forKey: "showWidgetPercentage")
                 let originalVisibility = panel.isVisible
                 toggleWidget()
                 let visibilityChanged = panel.isVisible != originalVisibility
@@ -109,6 +122,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 let report: [String: Any] = [
                     "bundlePath": Bundle.main.bundlePath,
                     "percentageTogglePassed": percentageChanged && item.button?.title == originalTitle,
+                    "widgetPercentageTogglePassed": widgetPercentagePassed,
                     "widgetVisibilityTogglePassed": visibilityChanged && panel.isVisible == originalVisibility,
                     "widgetSizesPassed": resizePassed,
                     "pid": ProcessInfo.processInfo.processIdentifier,
@@ -283,11 +297,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 menu.addItem(row)
             }
             menu.addItem(.separator())
-            add(menu, "Show Battery Percentage", #selector(togglePercentage), checked: showsPercentage)
+            add(menu, "Percentage in Menu Bar", #selector(togglePercentage), checked: showsPercentage)
             add(menu, "Launch at Login", #selector(toggleLogin), checked: SMAppService.mainApp.status == .enabled)
             add(menu, "Refresh", #selector(refresh))
             menu.addItem(.separator())
             add(menu, panel.isVisible ? "Hide Desktop Widget" : "Show Desktop Widget", #selector(toggleWidget))
+            add(menu, "Battery Percentage in Widget", #selector(toggleWidgetPercentage),
+                checked: defaults.bool(forKey: "showWidgetPercentage"))
             add(menu, "Keep Widget on Top", #selector(toggleLevel), checked: stayOnTop)
             add(menu, "Glass Background", #selector(toggleGlass), checked: !defaults.bool(forKey: "opaqueBackground"))
             let sizes = NSMenuItem(title: "Widget Size", action: nil, keyEquivalent: "")
@@ -359,6 +375,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func togglePercentage() {
         defaults.set(!showsPercentage, forKey: "showPercentage")
         refreshIcon(monitor.status)
+    }
+    @objc private func toggleWidgetPercentage() {
+        defaults.set(!defaults.bool(forKey: "showWidgetPercentage"), forKey: "showWidgetPercentage")
     }
     @objc private func toggleLogin() {
         do {
@@ -444,15 +463,15 @@ private struct DesktopIndicator: View {
     @ObservedObject var monitor: StatusMonitor
     var snapshot = false
     @AppStorage("opaqueBackground") private var opaqueBackground = false
+    @AppStorage("showWidgetPercentage") private var showsPercentage = false
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
-    @State private var isHovered = false
     var body: some View {
         IndicatorView(status: monitor.status,
                       ink: opaqueBackground ? .black : .primary,
                       inactiveOpacity: contrast == .increased ? 0.45 : 0.24,
-                      showsPercentage: isHovered)
+                      showsPercentage: showsPercentage)
             .padding(16)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background {
@@ -474,7 +493,6 @@ private struct DesktopIndicator: View {
                 }
             }
             .contentShape(RoundedRectangle(cornerRadius: 28))
-            .onHover { isHovered = $0 }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: monitor.status.power.fraction)
             .help(monitor.status.accessibilityLabel + "\nDrag to move the widget")
     }

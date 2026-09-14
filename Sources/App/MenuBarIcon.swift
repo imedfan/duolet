@@ -11,7 +11,8 @@ enum MenuBarIcon {
         let image = NSImage(size: NSSize(width: size, height: size))
         for scale in [1.0, 2.0, 3.0] {
             let renderer = ImageRenderer(content: IndicatorView(
-                status: status, ink: .black, inactiveOpacity: increasedContrast ? 0.5 : 0.3
+                status: status, ink: .black, inactiveOpacity: increasedContrast ? 0.5 : 0.3,
+                lowBatteryInk: nil
             ).frame(width: size, height: size).environment(\.colorScheme, .light))
             renderer.scale = scale
             guard let cgImage = renderer.cgImage else { return nil }

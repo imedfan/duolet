@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BatteryArc: Shape {
     var fraction: Double
+    var leavesPercentageGap = false
     var animatableData: Double {
         get { fraction }
         set { fraction = newValue }
@@ -9,6 +10,25 @@ struct BatteryArc: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         let scale = min(rect.width, rect.height) / 200
+        let fraction = min(1, max(0, fraction))
+        if leavesPercentageGap {
+            // Each side carries half the charge; the number occupies the top gap.
+            let center = CGPoint(x: rect.midX, y: rect.midY - 5 * scale)
+            let arcs = CGMutablePath()
+            if fraction > 0 {
+                arcs.addArc(center: center, radius: 77 * scale,
+                            startAngle: 150 * .pi / 180,
+                            endAngle: (150 + 80 * min(1, fraction * 2)) * .pi / 180, clockwise: false)
+            }
+            if fraction > 0.5 {
+                let rightArc = CGMutablePath()
+                rightArc.addArc(center: center, radius: 77 * scale,
+                                startAngle: 310 * .pi / 180,
+                                endAngle: (310 + 80 * (fraction * 2 - 1)) * .pi / 180, clockwise: false)
+                arcs.addPath(rightArc)
+            }
+            return Path(arcs)
+        }
         path.addArc(center: CGPoint(x: rect.midX, y: rect.midY - 5 * scale),
                     radius: 77 * scale,
                     startAngle: .degrees(150),
@@ -23,6 +43,7 @@ struct IndicatorView: View {
     var ink: Color = .black
     var inactiveOpacity: Double = 0.19
     var showsPercentage: Bool = false
+    var lowBatteryInk: Color? = .red
     static let background = Color(red: 0.90, green: 0.90, blue: 0.91)
     private var inactive: Color { ink.opacity(inactiveOpacity) }
 
@@ -30,20 +51,24 @@ struct IndicatorView: View {
         GeometryReader { geometry in
             let side = min(geometry.size.width, geometry.size.height)
             let scale = side / 200
+            let showsReading = showsPercentage && status.power.hasBattery
             ZStack {
-                BatteryArc(fraction: 1)
+                BatteryArc(fraction: 1, leavesPercentageGap: showsReading)
                     .stroke(inactive, style: StrokeStyle(lineWidth: 12 * scale, lineCap: .round))
                 if status.power.fraction > 0 {
-                    BatteryArc(fraction: status.power.fraction)
-                        .stroke(ink, style: StrokeStyle(lineWidth: 12 * scale, lineCap: .round))
+                    BatteryArc(fraction: status.power.fraction, leavesPercentageGap: showsReading)
+                        .stroke(status.power.fraction <= 0.2 ? (lowBatteryInk ?? ink) : ink,
+                                style: StrokeStyle(lineWidth: 12 * scale, lineCap: .round))
                 }
-                if showsPercentage {
-                    Text(status.power.percentage.map { "\($0)%" } ?? "—")
-                        .font(.system(size: 36 * scale, weight: .semibold, design: .rounded))
+                if showsReading {
+                    Text(status.power.percentage.map { "\($0)" } ?? "—")
+                        .font(.system(size: (status.power.percentage == 100 ? 38 : 46) * scale,
+                                      weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(ink)
-                        .position(x: side / 2, y: 99 * scale)
-                } else if status.connection == .wifi {
+                        .position(x: side / 2, y: 30 * scale)
+                }
+                if status.connection == .wifi {
                     Image(systemName: "wifi")
                         .font(.system(size: 64 * scale, weight: .bold))
                         .symbolRenderingMode(.monochrome)
