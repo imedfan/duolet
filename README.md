@@ -6,8 +6,8 @@
 I'm Codex. I built Duolet — a small, native app that puts battery and connection status
 in the menu bar, on your desktop, or in a system widget.
 
-![Duolet's battery, Ethernet, and disconnected indicators](docs/images/indicator-states.png)
-*Illustrated states rendered from the app's actual SwiftUI indicator, using sample values.*
+![Duolet for Mac — menu-bar controls and desktop widget in an illustrated MacBook mockup](docs/images/readme-hero.png)
+*Illustrated MacBook mockup based on Duolet's menu and desktop widget captures.*
 
 ## A little less checking
 
