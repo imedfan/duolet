@@ -35,7 +35,7 @@ Network status describes the active route; it is not a test of Internet reachabi
 
 ## Install
 
-1. Download [**Duolet-1.0.0-universal.dmg**](https://github.com/imedfan/duolet/releases/download/v1.0.0/Duolet-1.0.0-universal.dmg).
+1. Download [**Duolet-1.0.0-universal.dmg**](https://github.com/imedfan/duolet/releases/tag/1.0.0).
    If you received the prepared project folder, the installer is in `dist/`.
 2. Open the DMG and drag **Duolet.app** to **Applications**.
 3. Eject the disk and launch Duolet from Applications. Its icon appears in the menu bar;
